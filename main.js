@@ -34,20 +34,23 @@ function agregarAlCarrito(productos, carrito, precios) {
 
 
 function eliminarDelCarrito(productos, carrito, precios) {
+    let { producto, indiceProducto, indiceCarrito } = seleccionarProducto(carrito, productos);
 
-    let productoSeleccionado = seleccionarProducto(carrito);
+    if (indiceCarrito !== -1) { // si el producto esta en el carrito
+        let productoEliminado = carrito.splice(indiceCarrito, 1)[0]; // elimina de carrito
+        productos.push(productoEliminado.producto); // lo devuelve a los productos disponibles
+        precios.push(productoEliminado.precio); // devuelve el precio a la lista de precios
+        total -= productoEliminado.precio; // resta el precio del total acumulado
 
-    let productoEliminado = carrito.splice(indice, 1)[0]; // utilizo el splice dentro de producto para asi borrar del carrito y agregar a los productos
-    productos.push(productoEliminado.producto); // lo devuelve a los productos disponibles
-    precios.push(productoEliminado.precio); // devuelve el precio a la lista de precios
-    total -= productoEliminado.precio; // resta el precio del total acumulado
-
-    console.log(productoEliminado.producto +" eliminado del carrito y devuelto a la lista de productos. Total acumulado: "+total);
+        console.log(productoEliminado.producto + " eliminado del carrito y devuelto a la lista de productos. Total acumulado: " + total);
+    } else {
+        alert("El producto no esta en el carrito.");
+    }
 }
 
 
 function seleccionarProducto(productos) {
-    
+
     while (true) {
         let producto = prompt("Ingresa el nombre del producto que quieres eliminar o agregar al carrito: \n" );
 
