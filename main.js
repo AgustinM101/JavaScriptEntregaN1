@@ -1,107 +1,121 @@
-// idea => carrito de compras donde se pueda eliminar o agregar productos, ver productos y carrito, y pagar. 
-const productos = [];
-let precios = [];
-let carrito = [];
-let total = 0;
 
-function mostrarProductosDisponibles(productos) {
-    console.log("Lista de productos disponibles - \n");
-    for (let i = 0; i < productos.length; i++) {
-        console.log("Producto: "+ productos[i]+" - Precio: "+precios[i] +"\n" );
-    }
-}
-
-function agregarAlCarrito(productos, carrito, precios) { 
-    
-    let productoFinal = seleccionarProducto(productos, carrito); // guardando productoFinal como un objeto que contiene { producto, indiceProducto, indiceCarrito }
-
-    if (productoFinal.indiceProducto !== -1) { // si el producto esta en productos disponibles
-        let confirmacion = confirm("Confirmas agregar " + productoFinal.producto + " al carrito?");
-        if (confirmacion) {
-            let precio = precios[productoFinal.indiceProducto];
-            let productoEliminado = productos.splice(productoFinal.indiceProducto, 1)[0]; // eliminar de productos disponibles
-            carrito.push({ producto: productoFinal.producto, precio }); // agregar al carrito
-            total += precio;
-            alert(productoFinal.producto + " agregado al carrito. Total acumulado: " + total);
-        } else {
-            alert(productoFinal.producto + " no agregado al carrito.");
-        }
-    } else if (productoFinal.indiceCarrito !== -1) { // si el producto ya esta en el carrito
-        alert("Este producto ya esta en el carrito.");
-    }
-}
-
-function eliminarDelCarrito(productos, carrito, precios) {
-    let productoFinal = seleccionarProducto(carrito, productos); // guardando productoFinal como un objeto que contiene { producto, indiceProducto, indiceCarrito }
-
-    if (productoFinal.indiceCarrito !== -1) { // si el producto esta en el carrito
-        let productoEliminado = carrito.splice(productoFinal.indiceCarrito, 1)[0]; // elimina de carrito
-        productos.push(productoEliminado.producto); // lo devuelve a los productos disponibles
-        precios.push(productoEliminado.precio); // devuelve el precio a la lista de precios
-        total -= productoEliminado.precio; // resta el precio del total acumulado
-
-        console.log(productoEliminado.producto + " eliminado del carrito y devuelto a la lista de productos. Total acumulado: " + total);
-    } else {
-        alert("El producto no esta en el carrito.");
-    }
-}
-
-function seleccionarProducto(productos, carrito) {
-    while (true) {
-        let producto = prompt("Ingresa el nombre del producto que quieres eliminar o agregar al carrito: \n");
-
-        let indiceProducto = productos.indexOf(producto);
-        let indiceCarrito = carrito.findIndex(item => item.producto === producto); // utilizo findIndex para encontrar el indice y si no lo encuentra devuelve -1
-        // si bien no estaba dentro de los metodos que vimos, no pude encontrar la manera de obtener un indice directamente entonces encontré el metodo findIndex
-        if (indiceProducto !== -1 || indiceCarrito !== -1) {
-            return { producto, indiceProducto, indiceCarrito }; // Regresamos el objeto con el producto y los índices
-        } else {
-            alert(producto + " no se ha encontrado, por favor ingrese otro producto.");
-        }
-    }
-}
-
-function mostrarCarrito(carrito, total) {
-    console.log("Carrito actual:");
+const productos = [
+    { id: 1, nombre: "Producto 1", precio: 1000, imagen: "assets/img/leudanteHarina.png" },
+    { id: 2, nombre: "Producto 2", precio: 2000, imagen: "assets/img/naturaMayo.png" },
+    { id: 3, nombre: "Producto 3", precio: 3000, imagen: "assets/img/santaMartaHuevos.png" }, 
+    { id: 4, nombre: "Producto 4", precio: 4000, imagen: "assets/img/serenisimaLeche.png" }  
+  ];
+  const carrito = [];
+  let total = 0;
+  
+//elementos del DOM
+  const productosContainer = document.querySelector(".row");
+  const verCarritoBtn = document.getElementById("ver-carrito");
+  const carritoContainer = document.createElement("div");
+  carritoContainer.classList.add("container", "my-4");
+  carritoContainer.style.display = "none";
+  
+//función para renderizar los productos en la página
+  function renderProductos() {
+    productosContainer.innerHTML = ""; // limpia productos
+    productos.forEach((producto, index) => {
+      const card = document.createElement("div");
+      card.classList.add("col-md-4");
+      card.innerHTML = `
+        <div class="card">
+          <img src="${producto.imagen}" class="card-img-top" alt="${producto.nombre}">
+          <div class="card-body text-center">
+            <h5 class="card-title">${producto.nombre}</h5>
+            <p class="card-text">$${producto.precio}</p>
+            <button class="btn btn-success" data-index="${index}">Agregar al carrito</button>
+          </div>
+        </div>
+      `;
+      productosContainer.appendChild(card);
+    });
+  
+//agregar evento a los botones
+    const agregarBtns = document.querySelectorAll(".btn-success");
+    agregarBtns.forEach((btn) =>
+      btn.addEventListener("click", (e) => agregarAlCarrito(e.target.dataset.index))
+    );
+  }
+  
+//función para agregar un producto al carrito
+  function agregarAlCarrito(index) {
+    const producto = productos[index];
+    carrito.push(producto);
+    total += producto.precio;
+    productos.splice(index, 1); // eliminar de productos disponibles
+    renderProductos();
+    renderCarrito();
+  }
+  
+//función para renderizar el carrito
+  function renderCarrito() {
+    carritoContainer.innerHTML = ""; // kimpiar contenido
+    carrito.forEach((producto, index) => {
+      const row = document.createElement("div");
+      row.classList.add("row", "align-items-center", "mb-3");
+      row.innerHTML = `
+        <div class="col-md-6">${producto.nombre}</div>
+        <div class="col-md-3">$${producto.precio}</div>
+        <div class="col-md-3">
+          <button class="btn btn-danger" data-index="${index}">Eliminar</button>
+        </div>
+      `;
+      carritoContainer.appendChild(row);
+    });
+  
+//Total
+    const totalRow = document.createElement("div");
+    totalRow.classList.add("text-end", "mt-3");
+    totalRow.innerHTML = `<strong>Total: $${total}</strong>`;
+    carritoContainer.appendChild(totalRow);
+  
+//botón de pagar
+    const pagarBtn = document.createElement("button");
+    pagarBtn.classList.add("btn", "btn-primary", "mt-3");
+    pagarBtn.textContent = "Pagar y salir";
+    pagarBtn.addEventListener("click", pagar);
+    carritoContainer.appendChild(pagarBtn);
+  
+//agregar evento a los botones de eliminar
+    const eliminarBtns = carritoContainer.querySelectorAll(".btn-danger");
+    eliminarBtns.forEach((btn) =>
+      btn.addEventListener("click", (e) => eliminarDelCarrito(e.target.dataset.index))
+    );
+  }
+  
+//función para eliminar un producto del carrito
+  function eliminarDelCarrito(index) {
+    const producto = carrito[index];
+    productos.push(producto);
+    total -= producto.precio;
+    carrito.splice(index, 1); // eliminar del carrito
+    renderProductos();
+    renderCarrito();
+  }
+  
+//función para pagar
+  function pagar() {
     if (carrito.length === 0) {
-        console.log("El carrito esta vacio.");
-        return;
+      alert("El carrito está vacío.");
+      return;
     }
-    for (let i = 0; i < carrito.length; i++) {
-        console.log(carrito[i].producto + " - " + carrito[i].precio + "\n");
-    }
-    console.log("Total acumulado: " + total);
-}
-
-function core() {
-    const productos = ["mayonesa", "leche", "harina", "huevos"];
-    let precios = [350, 120, 200, 600];
-    let continuar = true;
-
-    while (continuar) {
-        let opcion = parseInt(prompt("Selecciona una opcion:\n1. Ver productos disponibles.\n2. Agregar 1 producto al carrito.\n3. Eliminar un producto del carrito.\n4. Ver carrito\n5. Pagar y Salir. \n"));
-        
-        switch (opcion) {
-            case 1:
-                mostrarProductosDisponibles(productos);
-                break;
-            case 2:
-                agregarAlCarrito(productos, carrito, precios);
-                break;
-            case 3:
-                eliminarDelCarrito(productos, carrito, precios);
-                break;
-            case 4:
-                mostrarCarrito(carrito, total);
-                break;
-            case 5:
-                mostrarCarrito(carrito, total);
-                alert("Ha pagado " + total + ", gracias por su compra!");
-                continuar = false;
-                break;
-            default:
-                alert("Opcion no valida, intenta de nuevo.");
-                break;
-        }
-    }
-}
+    alert(`Gracias por su compra. Total a pagar: $${total}`);
+    carrito.splice(0, carrito.length); //vaciar el carrito
+    total = 0;
+    renderCarrito();
+  }
+  
+//alternar la visibilidad del carrito
+  verCarritoBtn.addEventListener("click", () => {
+    carritoContainer.style.display =
+      carritoContainer.style.display === "none" ? "block" : "none";
+  });
+  
+// inicialización
+  document.body.appendChild(carritoContainer);
+  renderProductos();
+  
